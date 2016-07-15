@@ -95,6 +95,7 @@ STATIC mp_uint_t stringio_write(mp_obj_t o_in, const void *buf, mp_uint_t size, 
 STATIC mp_obj_t stringio_getvalue(mp_obj_t self_in) {
     mp_obj_stringio_t *self = MP_OBJ_TO_PTR(self_in);
     check_stringio_is_open(self);
+    // TODO: Try to avoid copying string
     return mp_obj_new_str_of_type(STREAM_TO_CONTENT_TYPE(self), (byte*)self->vstr->buf, self->vstr->len);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(stringio_getvalue_obj, stringio_getvalue);
@@ -173,7 +174,7 @@ const mp_obj_type_t mp_type_stringio = {
     .make_new = stringio_make_new,
     .getiter = mp_identity,
     .iternext = mp_stream_unbuffered_iter,
-    .stream_p = &stringio_stream_p,
+    .protocol = &stringio_stream_p,
     .locals_dict = (mp_obj_dict_t*)&stringio_locals_dict,
 };
 
@@ -185,7 +186,7 @@ const mp_obj_type_t mp_type_bytesio = {
     .make_new = stringio_make_new,
     .getiter = mp_identity,
     .iternext = mp_stream_unbuffered_iter,
-    .stream_p = &bytesio_stream_p,
+    .protocol = &bytesio_stream_p,
     .locals_dict = (mp_obj_dict_t*)&stringio_locals_dict,
 };
 #endif

@@ -25,11 +25,11 @@
  */
 
 #include <stdio.h>
-#include <errno.h>
 
 #include "py/nlr.h"
 #include "py/obj.h"
 #include "py/objlist.h"
+#include "py/mperrno.h"
 #include "py/mphal.h"
 #include "pybioctl.h"
 
@@ -53,12 +53,13 @@ STATIC void poll_map_add(mp_map_t *poll_map, const mp_obj_t *obj, mp_uint_t obj_
         if (elem->value == NULL) {
             // object not found; get its ioctl and add it to the poll list
             mp_obj_type_t *type = mp_obj_get_type(obj[i]);
-            if (type->stream_p == NULL || type->stream_p->ioctl == NULL) {
+            const mp_stream_p_t *stream_p = type->protocol;
+            if (stream_p == NULL || stream_p->ioctl == NULL) {
                 nlr_raise(mp_obj_new_exception_msg(&mp_type_TypeError, "object with stream.ioctl required"));
             }
             poll_obj_t *poll_obj = m_new_obj(poll_obj_t);
             poll_obj->obj = obj[i];
-            poll_obj->ioctl = type->stream_p->ioctl;
+            poll_obj->ioctl = stream_p->ioctl;
             poll_obj->flags = flags;
             poll_obj->flags_ret = 0;
             elem->value = poll_obj;
@@ -212,7 +213,7 @@ STATIC mp_obj_t poll_modify(mp_obj_t self_in, mp_obj_t obj_in, mp_obj_t eventmas
     mp_obj_poll_t *self = self_in;
     mp_map_elem_t *elem = mp_map_lookup(&self->poll_map, mp_obj_id(obj_in), MP_MAP_LOOKUP);
     if (elem == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(ENOENT)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_ENOENT)));
     }
     ((poll_obj_t*)elem->value)->flags = mp_obj_get_int(eventmask_in);
     return mp_const_none;

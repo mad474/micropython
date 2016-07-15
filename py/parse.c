@@ -104,7 +104,7 @@ enum {
 #undef one_or_more
 #undef DEF_RULE
 
-STATIC const rule_t *rules[] = {
+STATIC const rule_t *const rules[] = {
 #define DEF_RULE(rule, comp, kind, ...) &rule_##rule,
 #include "py/grammar.h"
 #undef DEF_RULE
@@ -449,6 +449,9 @@ STATIC void push_result_token(parser_t *parser) {
 
 #if MICROPY_COMP_MODULE_CONST
 STATIC const mp_rom_map_elem_t mp_constants_table[] = {
+    #if MICROPY_PY_UERRNO
+    { MP_ROM_QSTR(MP_QSTR_errno), MP_ROM_PTR(&mp_module_uerrno) },
+    #endif
     #if MICROPY_PY_UCTYPES
     { MP_ROM_QSTR(MP_QSTR_uctypes), MP_ROM_PTR(&mp_module_uctypes) },
     #endif
@@ -457,6 +460,8 @@ STATIC const mp_rom_map_elem_t mp_constants_table[] = {
 };
 STATIC MP_DEFINE_CONST_MAP(mp_constants_map, mp_constants_table);
 #endif
+
+STATIC void push_result_rule(parser_t *parser, size_t src_line, const rule_t *rule, size_t num_args);
 
 #if MICROPY_COMP_CONST_FOLDING
 STATIC bool fold_constants(parser_t *parser, const rule_t *rule, size_t num_args) {
@@ -583,6 +588,15 @@ STATIC bool fold_constants(parser_t *parser, const rule_t *rule, size_t num_args
                 mp_map_elem_t *elem = mp_map_lookup(&parser->consts, MP_OBJ_NEW_QSTR(id), MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);
                 assert(elem->value == MP_OBJ_NULL);
                 elem->value = MP_OBJ_NEW_SMALL_INT(value);
+
+                // If the constant starts with an underscore then treat it as a private
+                // variable and don't emit any code to store the value to the id.
+                if (qstr_str(id)[0] == '_') {
+                    pop_result(parser); // pop const(value)
+                    pop_result(parser); // pop id
+                    push_result_rule(parser, 0, rules[RULE_pass_stmt], 0); // replace with "pass"
+                    return true;
+                }
 
                 // replace const(value) with value
                 pop_result(parser);

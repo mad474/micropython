@@ -26,13 +26,13 @@
  */
 
 #include <string.h>
-#include <errno.h>
 #include <stdio.h>
 
 #include "py/nlr.h"
 #include "py/objlist.h"
 #include "py/runtime.h"
 #include "py/stream.h"
+#include "py/mperrno.h"
 #include "py/mphal.h"
 
 #include "netutils.h"
@@ -172,45 +172,45 @@ STATIC const mp_obj_type_t lwip_slip_type = {
 // investigate in more detail.
 #if LWIP_VERSION < 0x01040100
 static const int error_lookup_table[] = {
-    0,             /* ERR_OK          0      No error, everything OK. */
-    ENOMEM,        /* ERR_MEM        -1      Out of memory error.     */
-    ENOBUFS,       /* ERR_BUF        -2      Buffer error.            */
-    EWOULDBLOCK,   /* ERR_TIMEOUT    -3      Timeout                  */
-    EHOSTUNREACH,  /* ERR_RTE        -4      Routing problem.         */
-    EINPROGRESS,   /* ERR_INPROGRESS -5      Operation in progress    */
-    EINVAL,        /* ERR_VAL        -6      Illegal value.           */
-    EWOULDBLOCK,   /* ERR_WOULDBLOCK -7      Operation would block.   */
+    0,                /* ERR_OK          0      No error, everything OK. */
+    MP_ENOMEM,        /* ERR_MEM        -1      Out of memory error.     */
+    MP_ENOBUFS,       /* ERR_BUF        -2      Buffer error.            */
+    MP_EWOULDBLOCK,   /* ERR_TIMEOUT    -3      Timeout                  */
+    MP_EHOSTUNREACH,  /* ERR_RTE        -4      Routing problem.         */
+    MP_EINPROGRESS,   /* ERR_INPROGRESS -5      Operation in progress    */
+    MP_EINVAL,        /* ERR_VAL        -6      Illegal value.           */
+    MP_EWOULDBLOCK,   /* ERR_WOULDBLOCK -7      Operation would block.   */
 
-    ECONNABORTED,  /* ERR_ABRT       -8      Connection aborted.      */
-    ECONNRESET,    /* ERR_RST        -9      Connection reset.        */
-    ENOTCONN,      /* ERR_CLSD       -10     Connection closed.       */
-    ENOTCONN,      /* ERR_CONN       -11     Not connected.           */
-    EIO,           /* ERR_ARG        -12     Illegal argument.        */
-    EADDRINUSE,    /* ERR_USE        -13     Address in use.          */
-    -1,            /* ERR_IF         -14     Low-level netif error    */
-    EALREADY,      /* ERR_ISCONN     -15     Already connected.       */
-    EBADF,         /* _ERR_BADF      -16     Closed socket (null pcb) */
+    MP_ECONNABORTED,  /* ERR_ABRT       -8      Connection aborted.      */
+    MP_ECONNRESET,    /* ERR_RST        -9      Connection reset.        */
+    MP_ENOTCONN,      /* ERR_CLSD       -10     Connection closed.       */
+    MP_ENOTCONN,      /* ERR_CONN       -11     Not connected.           */
+    MP_EIO,           /* ERR_ARG        -12     Illegal argument.        */
+    MP_EADDRINUSE,    /* ERR_USE        -13     Address in use.          */
+    -1,               /* ERR_IF         -14     Low-level netif error    */
+    MP_EALREADY,      /* ERR_ISCONN     -15     Already connected.       */
+    MP_EBADF,         /* _ERR_BADF      -16     Closed socket (null pcb) */
 };
 #else
 static const int error_lookup_table[] = {
-    0,             /* ERR_OK          0      No error, everything OK. */
-    ENOMEM,        /* ERR_MEM        -1      Out of memory error.     */
-    ENOBUFS,       /* ERR_BUF        -2      Buffer error.            */
-    EWOULDBLOCK,   /* ERR_TIMEOUT    -3      Timeout                  */
-    EHOSTUNREACH,  /* ERR_RTE        -4      Routing problem.         */
-    EINPROGRESS,   /* ERR_INPROGRESS -5      Operation in progress    */
-    EINVAL,        /* ERR_VAL        -6      Illegal value.           */
-    EWOULDBLOCK,   /* ERR_WOULDBLOCK -7      Operation would block.   */
+    0,                /* ERR_OK          0      No error, everything OK. */
+    MP_ENOMEM,        /* ERR_MEM        -1      Out of memory error.     */
+    MP_ENOBUFS,       /* ERR_BUF        -2      Buffer error.            */
+    MP_EWOULDBLOCK,   /* ERR_TIMEOUT    -3      Timeout                  */
+    MP_EHOSTUNREACH,  /* ERR_RTE        -4      Routing problem.         */
+    MP_EINPROGRESS,   /* ERR_INPROGRESS -5      Operation in progress    */
+    MP_EINVAL,        /* ERR_VAL        -6      Illegal value.           */
+    MP_EWOULDBLOCK,   /* ERR_WOULDBLOCK -7      Operation would block.   */
 
-    EADDRINUSE,    /* ERR_USE        -8      Address in use.          */
-    EALREADY,      /* ERR_ISCONN     -9      Already connected.       */
-    ECONNABORTED,  /* ERR_ABRT       -10     Connection aborted.      */
-    ECONNRESET,    /* ERR_RST        -11     Connection reset.        */
-    ENOTCONN,      /* ERR_CLSD       -12     Connection closed.       */
-    ENOTCONN,      /* ERR_CONN       -13     Not connected.           */
-    EIO,           /* ERR_ARG        -14     Illegal argument.        */
-    -1,            /* ERR_IF         -15     Low-level netif error    */
-    EBADF,         /* _ERR_BADF      -16     Closed socket (null pcb) */
+    MP_EADDRINUSE,    /* ERR_USE        -8      Address in use.          */
+    MP_EALREADY,      /* ERR_ISCONN     -9      Already connected.       */
+    MP_ECONNABORTED,  /* ERR_ABRT       -10     Connection aborted.      */
+    MP_ECONNRESET,    /* ERR_RST        -11     Connection reset.        */
+    MP_ENOTCONN,      /* ERR_CLSD       -12     Connection closed.       */
+    MP_ENOTCONN,      /* ERR_CONN       -13     Not connected.           */
+    MP_EIO,           /* ERR_ARG        -14     Illegal argument.        */
+    -1,               /* ERR_IF         -15     Low-level netif error    */
+    MP_EBADF,         /* _ERR_BADF      -16     Closed socket (null pcb) */
 };
 #endif
 
@@ -239,7 +239,7 @@ typedef struct _lwip_socket_obj_t {
     byte peer[4];
     mp_uint_t peer_port;
     mp_uint_t timeout;
-    uint16_t leftover_count;
+    uint16_t recv_offset;
 
     uint8_t domain;
     uint8_t type;
@@ -311,6 +311,17 @@ STATIC err_t _lwip_tcp_recv_unaccepted(void *arg, struct tcp_pcb *pcb, struct pb
     return ERR_BUF;
 }
 
+// "Poll" (idle) callback to be called ASAP after accept callback
+// to execute Python callback function, as it can't be executed
+// from accept callback itself.
+STATIC err_t _lwip_tcp_accept_finished(void *arg, struct tcp_pcb *pcb)
+{
+    lwip_socket_obj_t *socket = (lwip_socket_obj_t*)arg;
+    tcp_poll(pcb, NULL, 0);
+    exec_user_callback(socket);
+    return ERR_OK;
+}
+
 // Callback for incoming tcp connections.
 STATIC err_t _lwip_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
     lwip_socket_obj_t *socket = (lwip_socket_obj_t*)arg;
@@ -323,7 +334,12 @@ STATIC err_t _lwip_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
         return ERR_BUF;
     } else {
         socket->incoming.connection = newpcb;
-        exec_user_callback(socket);
+        if (socket->callback != MP_OBJ_NULL) {
+            // Schedule accept callback to be called when lwIP is done
+            // with processing this incoming connection on its side and
+            // is idle.
+            tcp_poll(newpcb, _lwip_tcp_accept_finished, 1);
+        }
         return ERR_OK;
     }
 }
@@ -338,11 +354,17 @@ STATIC err_t _lwip_tcp_recv(void *arg, struct tcp_pcb *tcpb, struct pbuf *p, err
         socket->state = STATE_PEER_CLOSED;
         exec_user_callback(socket);
         return ERR_OK;
-    } else if (socket->incoming.pbuf != NULL) {
-        // No room in the inn, let LWIP know it's still responsible for delivery later
-        return ERR_BUF;
     }
-    socket->incoming.pbuf = p;
+
+    if (socket->incoming.pbuf == NULL) {
+        socket->incoming.pbuf = p;
+    } else {
+        #ifdef SOCKET_SINGLE_PBUF
+        return ERR_BUF;
+        #else
+        pbuf_cat(socket->incoming.pbuf, p);
+        #endif
+    }
 
     exec_user_callback(socket);
 
@@ -363,7 +385,7 @@ STATIC mp_uint_t lwip_udp_send(lwip_socket_obj_t *socket, const byte *buf, mp_ui
     // FIXME: maybe PBUF_ROM?
     struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
     if (p == NULL) {
-        *_errno = ENOMEM;
+        *_errno = MP_ENOMEM;
         return -1;
     }
 
@@ -401,7 +423,7 @@ STATIC mp_uint_t lwip_udp_receive(lwip_socket_obj_t *socket, byte *buf, mp_uint_
                 if (socket->incoming.pbuf != NULL) break;
             }
             if (socket->incoming.pbuf == NULL) {
-                *_errno = ETIMEDOUT;
+                *_errno = MP_ETIMEDOUT;
                 return -1;
             }
         } else {
@@ -444,7 +466,7 @@ STATIC mp_uint_t lwip_tcp_send(lwip_socket_obj_t *socket, const byte *buf, mp_ui
     if (available == 0) {
         // Non-blocking socket
         if (socket->timeout == 0) {
-            *_errno = EAGAIN;
+            *_errno = MP_EAGAIN;
             return MP_STREAM_ERROR;
         }
 
@@ -457,7 +479,7 @@ STATIC mp_uint_t lwip_tcp_send(lwip_socket_obj_t *socket, const byte *buf, mp_ui
         // Avoid sending too small packets, so wait until at least 16 bytes available
         while (socket->state >= STATE_CONNECTED && (available = tcp_sndbuf(socket->pcb.tcp)) < 16) {
             if (socket->timeout != -1 && mp_hal_ticks_ms() - start > socket->timeout) {
-                *_errno = ETIMEDOUT;
+                *_errno = MP_ETIMEDOUT;
                 return MP_STREAM_ERROR;
             }
             poll_sockets();
@@ -491,14 +513,14 @@ STATIC mp_uint_t lwip_tcp_receive(lwip_socket_obj_t *socket, byte *buf, mp_uint_
             if (socket->state == STATE_PEER_CLOSED) {
                 return 0;
             }
-            *_errno = EAGAIN;
+            *_errno = MP_EAGAIN;
             return -1;
         }
 
         mp_uint_t start = mp_hal_ticks_ms();
         while (socket->state == STATE_CONNECTED && socket->incoming.pbuf == NULL) {
             if (socket->timeout != -1 && mp_hal_ticks_ms() - start > socket->timeout) {
-                *_errno = ETIMEDOUT;
+                *_errno = MP_ETIMEDOUT;
                 return -1;
             }
             poll_sockets();
@@ -520,22 +542,28 @@ STATIC mp_uint_t lwip_tcp_receive(lwip_socket_obj_t *socket, byte *buf, mp_uint_
 
     struct pbuf *p = socket->incoming.pbuf;
 
-    if (socket->leftover_count == 0) {
-        socket->leftover_count = p->tot_len;
+    mp_uint_t remaining = p->len - socket->recv_offset;
+    if (len > remaining) {
+        len = remaining;
     }
 
-    u16_t result = pbuf_copy_partial(p, buf, ((socket->leftover_count >= len) ? len : socket->leftover_count), (p->tot_len - socket->leftover_count));
-    if (socket->leftover_count > len) {
-        // More left over...
-        socket->leftover_count -= len;
-    } else {
+    memcpy(buf, (byte*)p->payload + socket->recv_offset, len);
+
+    remaining -= len;
+    if (remaining == 0) {
+        socket->incoming.pbuf = p->next;
+        // If we don't ref here, free() will free the entire chain,
+        // if we ref, it does what we need: frees 1st buf, and decrements
+        // next buf's refcount back to 1.
+        pbuf_ref(p->next);
         pbuf_free(p);
-        socket->incoming.pbuf = NULL;
-        socket->leftover_count = 0;
+        socket->recv_offset = 0;
+    } else {
+        socket->recv_offset += len;
     }
+    tcp_recved(socket->pcb.tcp, len);
 
-    tcp_recved(socket->pcb.tcp, result);
-    return (mp_uint_t) result;
+    return len;
 }
 
 /*******************************************************************************/
@@ -545,8 +573,8 @@ STATIC const mp_obj_type_t lwip_socket_type;
 
 STATIC void lwip_socket_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     lwip_socket_obj_t *self = self_in;
-    mp_printf(print, "<socket state=%d timeout=%d incoming=%p remaining=%d>", self->state, self->timeout,
-        self->incoming.pbuf, self->leftover_count);
+    mp_printf(print, "<socket state=%d timeout=%d incoming=%p off=%d>", self->state, self->timeout,
+        self->incoming.pbuf, self->recv_offset);
 }
 
 // FIXME: Only supports two arguments at present
@@ -570,11 +598,11 @@ STATIC mp_obj_t lwip_socket_make_new(const mp_obj_type_t *type, mp_uint_t n_args
         case MOD_NETWORK_SOCK_STREAM: socket->pcb.tcp = tcp_new(); break;
         case MOD_NETWORK_SOCK_DGRAM: socket->pcb.udp = udp_new(); break;
         //case MOD_NETWORK_SOCK_RAW: socket->pcb.raw = raw_new(); break;
-        default: nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EINVAL)));
+        default: nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EINVAL)));
     }
 
     if (socket->pcb.tcp == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(ENOMEM)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_ENOMEM)));
     }
 
     switch (socket->type) {
@@ -596,7 +624,7 @@ STATIC mp_obj_t lwip_socket_make_new(const mp_obj_type_t *type, mp_uint_t n_args
     socket->incoming.pbuf = NULL;
     socket->timeout = -1;
     socket->state = STATE_NEW;
-    socket->leftover_count = 0;
+    socket->recv_offset = 0;
     return socket;
 }
 
@@ -670,15 +698,15 @@ STATIC mp_obj_t lwip_socket_listen(mp_obj_t self_in, mp_obj_t backlog_in) {
     mp_int_t backlog = mp_obj_get_int(backlog_in);
 
     if (socket->pcb.tcp == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EBADF)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EBADF)));
     }
     if (socket->type != MOD_NETWORK_SOCK_STREAM) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EOPNOTSUPP)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EOPNOTSUPP)));
     }
 
     struct tcp_pcb *new_pcb = tcp_listen_with_backlog(socket->pcb.tcp, (u8_t)backlog);
     if (new_pcb == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(ENOMEM)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_ENOMEM)));
     }
     socket->pcb.tcp = new_pcb;
     tcp_accept(new_pcb, _lwip_tcp_accept);
@@ -691,15 +719,15 @@ STATIC mp_obj_t lwip_socket_accept(mp_obj_t self_in) {
     lwip_socket_obj_t *socket = self_in;
 
     if (socket->pcb.tcp == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EBADF)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EBADF)));
     }
     if (socket->type != MOD_NETWORK_SOCK_STREAM) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EOPNOTSUPP)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EOPNOTSUPP)));
     }
     // I need to do this because "tcp_accepted", later, is a macro.
     struct tcp_pcb *listener = socket->pcb.tcp;
     if (listener->state != LISTEN) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EINVAL)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EINVAL)));
     }
 
     // accept incoming connection
@@ -710,7 +738,7 @@ STATIC mp_obj_t lwip_socket_accept(mp_obj_t self_in) {
                 if (socket->incoming.connection != NULL) break;
             }
             if (socket->incoming.connection == NULL) {
-                nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(ETIMEDOUT)));
+                nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_ETIMEDOUT)));
             }
         } else {
             while (socket->incoming.connection == NULL) {
@@ -733,7 +761,7 @@ STATIC mp_obj_t lwip_socket_accept(mp_obj_t self_in) {
     socket2->incoming.pbuf = NULL;
     socket2->timeout = socket->timeout;
     socket2->state = STATE_CONNECTED;
-    socket2->leftover_count = 0;
+    socket2->recv_offset = 0;
     socket2->callback = MP_OBJ_NULL;
     tcp_arg(socket2->pcb.tcp, (void*)socket2);
     tcp_err(socket2->pcb.tcp, _lwip_tcp_error);
@@ -757,7 +785,7 @@ STATIC mp_obj_t lwip_socket_connect(mp_obj_t self_in, mp_obj_t addr_in) {
     lwip_socket_obj_t *socket = self_in;
 
     if (socket->pcb.tcp == NULL) {
-        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EBADF)));
+        nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EBADF)));
     }
 
     // get address
@@ -772,9 +800,9 @@ STATIC mp_obj_t lwip_socket_connect(mp_obj_t self_in, mp_obj_t addr_in) {
         case MOD_NETWORK_SOCK_STREAM: {
             if (socket->state != STATE_NEW) {
                 if (socket->state == STATE_CONNECTED) {
-                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EALREADY)));
+                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EALREADY)));
                 } else {
-                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EINPROGRESS)));
+                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EINPROGRESS)));
                 }
             }
             // Register our recieve callback.
@@ -794,7 +822,7 @@ STATIC mp_obj_t lwip_socket_connect(mp_obj_t self_in, mp_obj_t addr_in) {
                     if (socket->state != STATE_CONNECTING) break;
                 }
                 if (socket->state == STATE_CONNECTING) {
-                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(ETIMEDOUT)));
+                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_ETIMEDOUT)));
                 }
             } else {
                 while (socket->state == STATE_CONNECTING) {
@@ -982,7 +1010,7 @@ STATIC mp_obj_t lwip_socket_sendall(mp_obj_t self_in, mp_obj_t buf_in) {
                 // most useful behavior is: check whether we will be able to send all of input
                 // data without EAGAIN, and if won't be, raise it without sending any.
                 if (bufinfo.len > tcp_sndbuf(socket->pcb.tcp)) {
-                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(EAGAIN)));
+                    nlr_raise(mp_obj_new_exception_arg1(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(MP_EAGAIN)));
                 }
             }
             // TODO: In CPython3.5, socket timeout should apply to the
@@ -1132,7 +1160,7 @@ STATIC const mp_obj_type_t lwip_socket_type = {
     .name = MP_QSTR_socket,
     .print = lwip_socket_print,
     .make_new = lwip_socket_make_new,
-    .stream_p = &lwip_socket_stream_p,
+    .protocol = &lwip_socket_stream_p,
     .locals_dict = (mp_obj_t)&lwip_socket_locals_dict,
 };
 

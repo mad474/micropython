@@ -484,7 +484,8 @@ struct _mp_obj_type_t {
     mp_fun_1_t iternext; // may return MP_OBJ_STOP_ITERATION as an optimisation instead of raising StopIteration() (with no args)
 
     mp_buffer_p_t buffer_p;
-    const mp_stream_p_t *stream_p;
+    // One of disjoint protocols (interfaces), like mp_stream_p_t, etc.
+    const void *protocol;
 
     // these are for dynamically created types (classes)
     struct _mp_obj_tuple_t *bases_tuple;
@@ -651,8 +652,8 @@ mp_float_t mp_obj_get_float(mp_obj_t self_in);
 void mp_obj_get_complex(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
 #endif
 //qstr mp_obj_get_qstr(mp_obj_t arg);
-void mp_obj_get_array(mp_obj_t o, mp_uint_t *len, mp_obj_t **items);
-void mp_obj_get_array_fixed_n(mp_obj_t o, mp_uint_t len, mp_obj_t **items);
+void mp_obj_get_array(mp_obj_t o, mp_uint_t *len, mp_obj_t **items); // *items may point inside a GC block
+void mp_obj_get_array_fixed_n(mp_obj_t o, mp_uint_t len, mp_obj_t **items); // *items may point inside a GC block
 mp_uint_t mp_get_index(const mp_obj_type_t *type, mp_uint_t len, mp_obj_t index, bool is_slice);
 mp_obj_t mp_obj_id(mp_obj_t o_in);
 mp_obj_t mp_obj_len(mp_obj_t o_in);

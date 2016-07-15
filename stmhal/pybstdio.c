@@ -26,10 +26,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #include "py/obj.h"
 #include "py/stream.h"
+#include "py/mperrno.h"
 #include "py/mphal.h"
 
 // TODO make stdin, stdout and stderr writable objects so they can
@@ -69,7 +69,7 @@ STATIC mp_uint_t stdio_read(mp_obj_t self_in, void *buf, mp_uint_t size, int *er
         }
         return size;
     } else {
-        *errcode = EPERM;
+        *errcode = MP_EPERM;
         return MP_STREAM_ERROR;
     }
 }
@@ -80,7 +80,7 @@ STATIC mp_uint_t stdio_write(mp_obj_t self_in, const void *buf, mp_uint_t size, 
         mp_hal_stdout_tx_strn_cooked(buf, size);
         return size;
     } else {
-        *errcode = EPERM;
+        *errcode = MP_EPERM;
         return MP_STREAM_ERROR;
     }
 }
@@ -123,7 +123,7 @@ STATIC const mp_obj_type_t stdio_obj_type = {
     .print = stdio_obj_print,
     .getiter = mp_identity,
     .iternext = mp_stream_unbuffered_iter,
-    .stream_p = &stdio_obj_stream_p,
+    .protocol = &stdio_obj_stream_p,
     .locals_dict = (mp_obj_t)&stdio_locals_dict,
 };
 
@@ -156,7 +156,7 @@ STATIC const mp_obj_type_t stdio_buffer_obj_type = {
     .print = stdio_obj_print,
     .getiter = mp_identity,
     .iternext = mp_stream_unbuffered_iter,
-    .stream_p = &stdio_buffer_obj_stream_p,
+    .protocol = &stdio_buffer_obj_stream_p,
     .locals_dict = (mp_obj_t)&stdio_locals_dict,
 };
 

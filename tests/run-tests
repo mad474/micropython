@@ -201,6 +201,13 @@ def run_tests(pyb, tests, args):
         skip_tests.add('float/true_value.py')
         skip_tests.add('float/types.py')
 
+    # Some tests shouldn't be run on a PC
+    if pyb is None:
+        # unix build does not have the GIL so can't run thread mutation tests
+        for t in tests:
+            if t.startswith('thread/mutate_'):
+                skip_tests.add(t)
+
     # Some tests shouldn't be run on pyboard
     if pyb is not None:
         skip_tests.add('basics/exception_chain.py') # warning is not printed
@@ -351,14 +358,15 @@ def main():
     cmd_parser.add_argument('files', nargs='*', help='input test files')
     args = cmd_parser.parse_args()
 
-    if args.target in ('pyboard', 'wipy', 'esp8266'):
+    EXTERNAL_TARGETS = ('pyboard', 'wipy', 'esp8266')
+    if args.target in EXTERNAL_TARGETS:
         import pyboard
         pyb = pyboard.Pyboard(args.device, args.baudrate, args.user, args.password)
         pyb.enter_raw_repl()
     elif args.target == 'unix':
         pyb = None
     else:
-        raise ValueError('target must be either unix, pyboard or wipy')
+        raise ValueError('target must be either %s or unix' % ", ".join(EXTERNAL_TARGETS))
 
     if len(args.files) == 0:
         if args.test_dirs is None:
